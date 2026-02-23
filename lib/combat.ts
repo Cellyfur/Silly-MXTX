@@ -144,7 +144,11 @@ export function executeAction(
       if ('isDefending' in target && target.isDefending) {
         damage = Math.floor(damage * 0.5);
       }
-      target.hp = Math.max(0, target.hp - damage);
+        if ('currentHp' in target) {
+            target.currentHp = Math.max(0, target.currentHp - damage);
+        } else {
+            target.hp = Math.max(0, target.hp - damage);
+        }
       message = `${attacker.name} attaque ${target.name} pour ${damage} dégâts !`;
       break;
 
@@ -155,7 +159,11 @@ export function executeAction(
         if ('isDefending' in target && target.isDefending) {
           damage = Math.floor(damage * 0.5);
         }
-        target.hp = Math.max(0, target.hp - damage);
+          if ('currentHp' in target) {
+              target.currentHp = Math.max(0, target.currentHp - damage);
+          } else {
+              target.hp = Math.max(0, target.hp - damage);
+          }
         message = `${attacker.name} utilise Attaque Puissante sur ${target.name} pour ${damage} dégâts ! 💥`;
       } else {
         message = `${attacker.name} rate son Attaque Puissante ! ❌`;
@@ -182,7 +190,11 @@ export function executeAction(
       } else if (attacker.rarity === 'Rare') {
         // Attaque de zone (appliquée à la cible seulement pour la simulation)
         damage = calculateDamage(attacker.attack * attacker.attackBuff * 0.8);
-        target.hp = Math.max(0, target.hp - damage);
+          if ('currentHp' in target) {
+              target.currentHp = Math.max(0, target.currentHp - damage);
+          } else {
+              target.hp = Math.max(0, target.hp - damage);
+          }
         message = `${attacker.name} utilise Attaque de Zone ! Tous les ennemis prennent ${damage} dégâts ! 🌪️`;
       } else if (attacker.rarity === 'Legendary') {
         // Buff d'équipe
