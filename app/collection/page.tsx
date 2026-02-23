@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { OwnedCharacter, RARITY_CONFIG, MAX_CONSTELLATION, CHARACTERS } from '@/lib/characters';
+import { CharacterImage } from '@/components/CharacterImage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -93,8 +94,13 @@ export default function Collection() {
                                             </div>
                                         )}
 
-                                        <div className={`text-4xl mb-2 mt-4 ${!isOwned ? 'opacity-30' : ''}`}>
-                                            {char.image}
+                                        <div className={`mb-2 mt-4 flex justify-center ${!isOwned ? 'opacity-30' : ''}`}>
+                                            <CharacterImage
+                                                src={char.image}
+                                                alt={char.name}
+                                                size="medium"
+                                                crop="head"
+                                            />
                                         </div>
                                         <div className={`text-white text-xs font-medium truncate mb-1 ${!isOwned ? 'opacity-50' : ''}`}>
                                             {isOwned ? char.name : '???'}

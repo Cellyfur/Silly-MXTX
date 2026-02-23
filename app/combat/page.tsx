@@ -16,6 +16,7 @@ import {
   getTotalReward,
   WAVE_REWARDS 
 } from '@/lib/combat';
+import { CharacterImage } from '@/components/CharacterImage';
 
 type GameState = 'team-selection' | 'player-turn' | 'enemy-turn' | 'qte' | 'victory' | 'defeat';
 type ActionType = 'attack' | 'power-attack' | 'defend' | 'special';
@@ -433,7 +434,9 @@ export default function Combat() {
                             C{char.constellation}
                           </div>
 
-                          <div className="text-4xl mb-2 mt-6">{char.image}</div>
+                            <div className="mb-2 mt-6 flex justify-center">
+                                <CharacterImage src={char.image} alt={char.name} size="medium" />
+                            </div>
                           <div className="text-white text-xs font-medium truncate mb-1">{char.name}</div>
                           <div className="text-xs text-gray-400">
                             ❤️ {Math.floor((char.rarity === 'Common' ? 100 : char.rarity === 'Rare' ? 150 : 200) * (1 + char.constellation * 0.1))}
@@ -500,7 +503,7 @@ export default function Combat() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-3xl">{fighter.image}</span>
+                            <CharacterImage src={fighter.image} alt={fighter.name} size="small" />
                             <div>
                               <div className="text-white font-bold">{fighter.name}</div>
                               <div className="text-xs text-gray-400">
@@ -547,7 +550,7 @@ export default function Combat() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-3xl">{enemy.image}</span>
+                            <CharacterImage src={enemy.image} alt={enemy.name} size="small" />
                             <div className="text-white font-bold text-left">{enemy.name}</div>
                           </div>
                           <div className="text-right">
@@ -644,7 +647,7 @@ export default function Combat() {
                 <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
                   <div className="card max-w-2xl w-full">
                     <h2 className="text-3xl font-bold text-red-400 mb-6 text-center">
-                      {attackingEnemy.image} {attackingEnemy.name} attaque !
+                       <CharacterImage src={attackingEnemy.image} alt={attackingEnemy.name} size="medium" /> {attackingEnemy.name} attaque !
                     </h2>
                     
                     <div className="mb-8">

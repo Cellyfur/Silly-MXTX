@@ -5,110 +5,139 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const { login, signup } = useAuth();
-  const router = useRouter();
+    const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const { login, signup } = useAuth();
+    const router = useRouter();
 
-    try {
-      if (isLogin) {
-        await login(email, password);
-      } else {
-        await signup(email, password);
-      }
-      router.push('/');
-    } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Cet email est déjà utilisé');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Le mot de passe doit contenir au moins 6 caractères');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Email invalide');
-      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Email ou mot de passe incorrect');
-      } else {
-        setError('Une erreur est survenue');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="card max-w-md w-full">
-        <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400 mb-2 text-center">
-          ✨ Gacha Game
-        </h1>
-        <p className="text-amber-200/70 text-center mb-8">
-          {isLogin ? 'Connectez-vous à votre compte' : 'Créez votre compte'}
-        </p>
+        try {
+            if (isLogin) {
+                await login(email, password);
+            } else {
+                await signup(email, password);
+            }
+            router.push('/');
+        } catch (err: any) {
+            if (err.code === 'auth/email-already-in-use') {
+                setError('Cet email est déjà utilisé');
+            } else if (err.code === 'auth/weak-password') {
+                setError('Le mot de passe doit contenir au moins 6 caractères');
+            } else if (err.code === 'auth/invalid-email') {
+                setError('Email invalide');
+            } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                setError('Email ou mot de passe incorrect');
+            } else {
+                setError('Une erreur est survenue');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-amber-100 text-sm font-medium mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-900/50 border border-amber-600/30 rounded-lg text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-amber-500/50 transition-colors"
-              placeholder="votre@email.com"
-              required
-            />
-          </div>
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="auth-card max-w-md w-full">
 
-          <div>
-            <label className="block text-amber-100 text-sm font-medium mb-2">
-              Mot de passe
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-900/50 border border-amber-600/30 rounded-lg text-amber-100 placeholder-amber-200/30 focus:outline-none focus:border-amber-500/50 transition-colors"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+                {/* Titre calligraphique */}
+                <div className="text-center mb-8">
+                    <h1
+                        className="text-4xl font-bold mb-3"
+                        style={{ fontFamily: "'Shippori Mincho', serif", color: '#291400', letterSpacing: '0.12em' }}
+                    >
+                        墨香铜臭
+                    </h1>
+                    {/* Trait décoratif carmin */}
+                    <div style={{
+                        height: '2px',
+                        width: '3rem',
+                        margin: '0 auto 0.75rem',
+                        background: 'linear-gradient(90deg, transparent, #c41e1e, transparent)'
+                    }}/>
+                    <p style={{ color: 'rgba(41, 20, 0, 0.55)', fontSize: '0.9rem', letterSpacing: '0.04em' }}>
+                        {isLogin ? 'Connectez-vous à votre compte' : 'Créez votre compte'}
+                    </p>
+                </div>
 
-          {error && (
-            <div className="bg-red-900/30 border border-red-600/50 text-red-200 px-4 py-3 rounded-lg text-sm">
-              {error}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label
+                            className="block text-sm font-medium mb-2"
+                            style={{ color: '#291400', letterSpacing: '0.04em' }}
+                        >
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="auth-input"
+                            placeholder="votre@email.com"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            className="block text-sm font-medium mb-2"
+                            style={{ color: '#291400', letterSpacing: '0.04em' }}
+                        >
+                            Mot de passe
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="auth-input"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+
+                    {error && (
+                        <div style={{
+                            background: 'rgba(196, 30, 30, 0.06)',
+                            border: '1px solid rgba(196, 30, 30, 0.3)',
+                            color: '#8b1010',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '0.5rem',
+                            fontSize: '0.875rem',
+                        }}>
+                            {error}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="auth-btn"
+                        style={loading ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                        {loading ? 'Chargement...' : isLogin ? 'Se connecter' : "S'inscrire"}
+                    </button>
+                </form>
+
+                {/* Séparateur */}
+                <div className="divider-carmine mt-6" />
+
+                <div className="text-center">
+                    <button
+                        onClick={() => { setIsLogin(!isLogin); setError(''); }}
+                        className="text-sm transition-opacity hover:opacity-70"
+                        style={{ color: 'var(--carmine-dk)', letterSpacing: '0.03em' }}
+                    >
+                        {isLogin ? "Pas de compte ? Créer un compte" : "Déjà un compte ? Se connecter"}
+                    </button>
+                </div>
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-slate-700 disabled:to-slate-800 px-6 py-3 rounded-lg text-slate-950 font-bold transition-all shadow-lg shadow-amber-600/30 disabled:shadow-none"
-          >
-            {loading ? 'Chargement...' : isLogin ? 'Se connecter' : "S'inscrire"}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-            }}
-            className="text-amber-300 hover:text-amber-200 text-sm transition-colors"
-          >
-            {isLogin ? "Pas de compte ? Créer un compte" : "Déjà un compte ? Se connecter"}
-          </button>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
