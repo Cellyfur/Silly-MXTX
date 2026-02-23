@@ -45,7 +45,7 @@ export const MAX_CONSTELLATION = 6;
 export const DUPLICATE_COINS = 100;
 
 // Importer les personnages depuis le fichier de données
-export const CHARACTERS: Character[] = CHARACTERS_DATA;
+export const CHARACTERS: Character[] = CHARACTERS_DATA as Character[];
 
 // Fonction de tirage avec les probabilités
 export function drawCharacter(): Character {
