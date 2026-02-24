@@ -1,25 +1,26 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+import {
+    User,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { OwnedCharacter } from '@/lib/characters';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  saveUserData: (coins: number, inventory: OwnedCharacter[]) => Promise<void>;
-  loadUserData: () => Promise<{ coins: number; inventory: OwnedCharacter[] } | null>;
+    user: User | null;
+    loading: boolean;
+    login: (email: string, password: string) => Promise<void>;
+    signup: (email: string, password: string) => Promise<void>;
+    logout: () => Promise<void>;
+    saveUserData: (coins: number, inventory: OwnedCharacter[]) => Promise<void>;
+    loadUserData: () => Promise<{ coins: number; inventory: OwnedCharacter[]; hasSeenTutorial: boolean } | null>;
+    markTutorialSeen: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -27,78 +28,88 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user);
+            setLoading(false);
+        });
 
-    return unsubscribe;
-  }, []);
+        return unsubscribe;
+    }, []);
 
-  const signup = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
-    // Initialiser les données utilisateur
-    if (auth.currentUser) {
-      await setDoc(doc(db, 'users', auth.currentUser.uid), {
-        coins: 5000,
-        inventory: [],
-        createdAt: new Date().toISOString(),
-      });
-    }
-  };
+    const signup = async (email: string, password: string) => {
+        await createUserWithEmailAndPassword(auth, email, password);
+        // Initialiser les données utilisateur
+        if (auth.currentUser) {
+            await setDoc(doc(db, 'users', auth.currentUser.uid), {
+                coins: 5000,
+                inventory: [],
+                hasSeenTutorial: false,
+                createdAt: new Date().toISOString(),
+            });
+        }
+    };
 
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-  };
+    const login = async (email: string, password: string) => {
+        await signInWithEmailAndPassword(auth, email, password);
+    };
 
-  const logout = async () => {
-    await signOut(auth);
-  };
+    const logout = async () => {
+        await signOut(auth);
+    };
 
-  const saveUserData = async (coins: number, inventory: OwnedCharacter[]) => {
-    if (!user) return;
-    
-    await setDoc(doc(db, 'users', user.uid), {
-      coins,
-      inventory,
-      lastUpdated: new Date().toISOString(),
-    }, { merge: true });
-  };
+    const saveUserData = async (coins: number, inventory: OwnedCharacter[]) => {
+        if (!user) return;
 
-  const loadUserData = async () => {
-    if (!user) return null;
+        await setDoc(doc(db, 'users', user.uid), {
+            coins,
+            inventory,
+            lastUpdated: new Date().toISOString(),
+        }, { merge: true });
+    };
 
-    const docRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(docRef);
+    const loadUserData = async () => {
+        if (!user) return null;
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      return {
-        coins: data.coins || 5000,
-        inventory: data.inventory || [],
-      };
-    }
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
 
-    return null;
-  };
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return {
+                coins: data.coins || 5000,
+                inventory: data.inventory || [],
+                hasSeenTutorial: data.hasSeenTutorial ?? true, // true par défaut pour les anciens comptes
+            };
+        }
 
-  const value = {
-    user,
-    loading,
-    login,
-    signup,
-    logout,
-    saveUserData,
-    loadUserData,
-  };
+        return null;
+    };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+    const markTutorialSeen = async () => {
+        if (!user) return;
+        await setDoc(doc(db, 'users', user.uid), {
+            hasSeenTutorial: true,
+        }, { merge: true });
+    };
+
+    const value = {
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        saveUserData,
+        loadUserData,
+        markTutorialSeen,
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 }

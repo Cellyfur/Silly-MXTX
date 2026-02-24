@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { Character, OwnedCharacter, drawCharacter, RARITY_CONFIG, MAX_CONSTELLATION, DUPLICATE_COINS } from '@/lib/characters';
 import { getRevealBackgroundStyle } from '@/lib/backgrounds';
 import { CharacterImage } from '@/components/CharacterImage';
+import { TutorialModal } from '@/components/TutorialModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const PULL_COST = 100;
+const PULL_COST = 160;
 const INITIAL_COINS = 5000;
 const USE_BACKGROUND_IMAGES = true;
 
@@ -22,7 +23,7 @@ interface PullResult {
 }
 
 export default function Home() {
-    const { user, logout, saveUserData, loadUserData } = useAuth();
+    const { user, logout, saveUserData, loadUserData, markTutorialSeen } = useAuth();
     const router = useRouter();
 
     const [coins, setCoins] = useState(INITIAL_COINS);
@@ -34,6 +35,7 @@ export default function Home() {
     const [showSummary, setShowSummary] = useState(false);
     const [isRevealing, setIsRevealing] = useState(false);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const [showTutorial, setShowTutorial] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -47,6 +49,10 @@ export default function Home() {
                 if (data) {
                     setCoins(data.coins);
                     setInventory(data.inventory);
+                    // Afficher le tutoriel si pas encore vu
+                    if (!data.hasSeenTutorial) {
+                        setShowTutorial(true);
+                    }
                 }
                 setDataLoaded(true);
             });
@@ -58,6 +64,11 @@ export default function Home() {
             saveUserData(coins, inventory);
         }
     }, [coins, inventory, user, saveUserData, dataLoaded]);
+
+    const handleTutorialComplete = async () => {
+        setShowTutorial(false);
+        await markTutorialSeen();
+    };
 
     const handlePull = (count: 1 | 10) => {
         const totalCost = PULL_COST * count;
@@ -128,24 +139,26 @@ export default function Home() {
                 }
             }
 
-            setPullResults(results);
+            const newCoins = coins - totalCost + bonusCoins;
+            setCoins(newCoins);
             setInventory(updatedInventory);
-            setCoins(coins - totalCost + bonusCoins);
+            setPullResults(results);
             setIsPulling(false);
             setShowResults(true);
-            setIsRevealing(false);
+            setCurrentResultIndex(0);
+            setIsRevealing(true);
 
-            setTimeout(() => {
-                setIsRevealing(true);
-            }, 500);
-        }, 2000);
+            setTimeout(() => setIsRevealing(false), 900);
+        }, 800);
     };
 
-    const handleNextCharacter = () => {
+    const handleRevealClick = () => {
+        if (isRevealing) return;
+
         if (currentResultIndex < pullResults.length - 1) {
-            setCurrentResultIndex(currentResultIndex + 1);
-            setIsRevealing(false);
-            setTimeout(() => setIsRevealing(true), 100);
+            setCurrentResultIndex(prev => prev + 1);
+            setIsRevealing(true);
+            setTimeout(() => setIsRevealing(false), 900);
         } else {
             setShowResults(false);
             setShowSummary(true);
@@ -155,15 +168,14 @@ export default function Home() {
     const closeSummary = () => {
         setShowSummary(false);
         setPullResults([]);
-        setCurrentResultIndex(0);
     };
 
     const addCoins = () => {
-        setCoins(coins + 1000);
+        setCoins(prev => prev + 1000);
     };
 
-    const resetGame = async () => {
-        if (confirm('Êtes-vous sûr de vouloir réinitialiser votre progression ?')) {
+    const handleReset = async () => {
+        if (confirm('Réinitialiser toutes vos données ?')) {
             setCoins(INITIAL_COINS);
             setInventory([]);
             setPullResults([]);
@@ -204,13 +216,18 @@ export default function Home() {
 
     return (
         <div className="min-h-screen">
+            {/* Tutoriel premier login */}
+            {showTutorial && (
+                <TutorialModal onComplete={handleTutorialComplete} />
+            )}
+
             <header className="header">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <h1 className="header-title">墨香铜臭</h1>
                     <div className="flex items-center gap-4">
-                        <div className="text-sm hidden md:block" style={{ color: '#291400', opacity: 0.7 }}>
+                        <Link href="/profile" className="nav-link">
                             {user.email}
-                        </div>
+                        </Link>
                         <Link href="/combat" className="nav-link">
                             ⚔️ Combat
                         </Link>
@@ -266,7 +283,7 @@ export default function Home() {
                                     <div className="text-xl font-bold mb-2">Tirage x10</div>
                                     <div className="text-lg flex items-center justify-center gap-2">
                                         <span>💰</span>
-                                        <span className="pull-btn-cost">{PULL_COST * 9}</span>
+                                        <span className="pull-btn-cost">{PULL_COST * 10}</span>
                                     </div>
                                 </div>
                                 <div className="pull-btn-badge">POPULAIRE</div>
@@ -304,125 +321,86 @@ export default function Home() {
                         )}
                     </div>
 
-                    {!showResults && !isPulling && !showSummary && (
-                        <div className="mt-6 flex gap-4 justify-center">
-                            <Link
-                                href="/collection"
-                                className="border px-6 py-3 rounded-lg font-medium transition-all hover:opacity-80"
-                                style={{ color: '#291400', borderColor: 'rgba(41,20,0,0.25)', background: 'rgba(41,20,0,0.04)' }}
-                            >
-                                Voir ma Collection
-                            </Link>
-                            <Link
-                                href="/combat"
-                                className="border px-6 py-3 rounded-lg font-medium transition-all hover:opacity-80"
-                                style={{ color: '#291400', borderColor: 'rgba(196,30,30,0.3)', background: 'rgba(196,30,30,0.06)' }}
-                            >
-                                ⚔️ Arena de Combat
-                            </Link>
-                            <button onClick={resetGame} className="reset-btn">
-                                Réinitialiser
-                            </button>
-                        </div>
-                    )}
+                    {/* Boutons utilitaires */}
+                    <div className="flex gap-3 mt-4 justify-end">
+                        <button
+                            onClick={() => setShowTutorial(true)}
+                            className="text-sm transition-opacity hover:opacity-70"
+                            style={{ color: 'rgba(41,20,0,0.5)', fontFamily: "'Inter', sans-serif" }}
+                        >
+                            📖 Tutoriel
+                        </button>
+                        <button
+                            onClick={handleReset}
+                            className="text-sm transition-opacity hover:opacity-70"
+                            style={{ color: 'rgba(41,20,0,0.5)', fontFamily: "'Inter', sans-serif" }}
+                        >
+                            Réinitialiser
+                        </button>
+                    </div>
                 </div>
             </main>
 
-            {/* Écran de révélation individuelle */}
+            {/* Révélation des personnages */}
             {showResults && currentResult && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
-                    style={getRevealBackgroundStyle(currentResult.character.rarity, USE_BACKGROUND_IMAGES)}
-                    onClick={handleNextCharacter}
+                    className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
+                    style={USE_BACKGROUND_IMAGES ? getRevealBackgroundStyle(currentResult.character.rarity) : {
+                        background: `radial-gradient(ellipse at center, ${RARITY_CONFIG[currentResult.character.rarity].glowColor} 0%, rgba(10, 8, 6, 0.97) 70%)`,
+                    }}
+                    onClick={handleRevealClick}
                 >
-                    {USE_BACKGROUND_IMAGES && (
-                        <div className="absolute inset-0 bg-black/80"></div>
-                    )}
-
-                    <div className={`relative z-10 w-full max-w-6xl mx-auto px-8 ${isRevealing ? 'reveal-animation' : 'opacity-0'}`}>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-                            <div className="text-left space-y-6">
-                                <h2 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
-                                    {currentResult.character.name}
-                                </h2>
-
-                                <div className="flex gap-3 mb-6">
-                                    {[...Array(RARITY_CONFIG[currentResult.character.rarity].stars)].map((_, i) => (
-                                        <span
-                                            key={i}
-                                            className={`text-5xl ${getStarsClass(currentResult.character.rarity)}`}
-                                            style={{
-                                                animation: `starPop 0.5s ease-out ${i * 0.1}s both`,
-                                                filter: `drop-shadow(0 0 10px ${RARITY_CONFIG[currentResult.character.rarity].glowColor})`
-                                            }}
-                                        >
-                                            ⭐
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className="space-y-4">
-                                    {currentResult.isNew ? (
-                                        <div className="inline-block px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white text-2xl font-bold rounded-lg border-2 border-green-400 shadow-lg shadow-green-500/50">
-                                            <span className="text-3xl mr-2">✨</span>NEW
-                                        </div>
-                                    ) : currentResult.coinsReceived > 0 ? (
-                                        <div className="inline-block px-8 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white text-2xl font-bold rounded-lg border-2 border-amber-400 shadow-lg shadow-amber-500/50">
-                                            <span className="text-3xl mr-2">💰</span>+{currentResult.coinsReceived}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <div className="inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-2xl font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50">
-                                                <span className="text-3xl mr-2">🌟</span>Constellation +1
-                                            </div>
-                                            <div className="bg-black/60 rounded-lg p-4 inline-block">
-                                                <div className="text-white/70 text-sm mb-2">Constellation</div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-4xl font-bold text-white/50">C{currentResult.previousConstellation}</span>
-                                                    <span className="text-3xl text-white/50">→</span>
-                                                    <span className="text-5xl font-bold text-amber-400">C{currentResult.newConstellation}</span>
-                                                </div>
-                                                {currentResult.newConstellation === MAX_CONSTELLATION && (
-                                                    <div className="text-amber-400 text-sm mt-2 font-bold">✨ MAX !</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div
-                                    className={`inline-block px-8 py-4 rounded-lg text-3xl font-bold ${getRarityClass(currentResult.character.rarity)} border-2`}
-                                    style={{
-                                        borderColor: RARITY_CONFIG[currentResult.character.rarity].color,
-                                        boxShadow: `0 0 30px ${RARITY_CONFIG[currentResult.character.rarity].glowColor}`
-                                    }}
-                                >
-                                    {currentResult.character.rarity}
-                                </div>
-
-                                <div className="text-white/50 text-lg mt-8">
-                                    {currentResultIndex + 1} / {pullResults.length}
-                                </div>
-                            </div>
-
-                            <div className="flex justify-center lg:justify-end">
-                                <div className="relative" style={{ filter: `drop-shadow(0 0 60px ${RARITY_CONFIG[currentResult.character.rarity].glowColor})` }}>
-                                    <div className="animate-float">
-                                        <CharacterImage
-                                            src={currentResult.character.image}
-                                            alt={currentResult.character.name}
-                                            size="xxlarge"
-                                            className="scale-[3]"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                    <div className={`text-center ${isRevealing ? 'reveal-animation' : ''}`}>
+                        <div className="mb-6">
+                            <CharacterImage
+                                src={currentResult.character.image}
+                                alt={currentResult.character.name}
+                                size="xxlarge"
+                                className="mx-auto"
+                                style={{ filter: 'drop-shadow(0 0 40px rgba(255,255,255,0.3))' }}
+                            />
                         </div>
 
-                        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/50 text-sm animate-pulse">
-                            {currentResultIndex < pullResults.length - 1 ? 'Cliquez pour continuer' : 'Cliquez pour le récapitulatif'}
+                        <div className={`text-6xl mb-4 ${getStarsClass(currentResult.character.rarity)}`}>
+                            {'★'.repeat(RARITY_CONFIG[currentResult.character.rarity].stars)}
                         </div>
+
+                        <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Shippori Mincho', serif", letterSpacing: '0.08em' }}>
+                            {currentResult.character.name}
+                        </h2>
+
+                        <div className={`text-xl font-bold mb-4 ${getRarityClass(currentResult.character.rarity)}`}>
+                            {currentResult.character.rarity}
+                        </div>
+
+                        {currentResult.isNew && (
+                            <div className="inline-block px-4 py-2 rounded-full text-white font-bold text-sm"
+                                 style={{ background: 'rgba(196, 30, 30, 0.8)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                                ✨ Nouveau personnage !
+                            </div>
+                        )}
+
+                        {currentResult.isDuplicate && currentResult.newConstellation <= MAX_CONSTELLATION && (
+                            <div className="inline-block px-4 py-2 rounded-full text-white font-bold text-sm"
+                                 style={{ background: 'rgba(74, 63, 53, 0.8)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                                Constellation C{currentResult.newConstellation}
+                            </div>
+                        )}
+
+                        {currentResult.coinsReceived > 0 && (
+                            <div className="mt-2 inline-block px-4 py-2 rounded-full font-bold text-sm"
+                                 style={{ background: 'rgba(184, 134, 11, 0.8)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
+                                +{currentResult.coinsReceived} 💰
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="absolute bottom-8 text-white/50 text-sm animate-bounce">
+                        {currentResultIndex < pullResults.length - 1 ? 'Cliquez pour continuer' : 'Cliquez pour le récapitulatif'}
+                    </div>
+
+                    <div className="absolute top-6 right-6 text-white/40 text-sm">
+                        {currentResultIndex + 1} / {pullResults.length}
                     </div>
                 </div>
             )}
@@ -454,63 +432,49 @@ export default function Home() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto pb-8">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 perspective-1000">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {pullResults.map((result, index) => (
                                     <div
                                         key={index}
-                                        className="summary-card-container"
-                                        style={{ animationDelay: `${index * 0.05}s` }}
+                                        className={`summary-card summary-card-${result.character.rarity.toLowerCase()}`}
                                     >
-                                        <div
-                                            className={`summary-card ${RARITY_CONFIG[result.character.rarity].bgColor}`}
-                                            style={{
-                                                boxShadow: `0 0 20px ${RARITY_CONFIG[result.character.rarity].glowColor}, inset 0 0 30px ${RARITY_CONFIG[result.character.rarity].glowColor}`,
-                                            }}
-                                        >
-                                            {result.isNew && <div className="summary-new-badge">NEW</div>}
-                                            {!result.isNew && result.coinsReceived === 0 && (
-                                                <div className="summary-constellation-badge">C{result.newConstellation}</div>
+                                        <div className="relative mb-3">
+                                            <CharacterImage
+                                                src={result.character.image}
+                                                alt={result.character.name}
+                                                size="large"
+                                                className="mx-auto"
+                                            />
+                                            {result.isNew && (
+                                                <div className="summary-new-badge">NOUVEAU</div>
                                             )}
                                             {result.coinsReceived > 0 && (
                                                 <div className="summary-coins-badge">+{result.coinsReceived}💰</div>
                                             )}
-
-                                            <div className="flex justify-center mb-3 mt-6">
-                                                <CharacterImage
-                                                    src={result.character.image}
-                                                    alt={result.character.name}
-                                                    size="large"
-                                                />
-                                            </div>
-
-                                            <div
-                                                className="text-sm font-bold mb-2 px-2 truncate"
-                                                style={{ color: '#291400' }}
-                                            >
-                                                {result.character.name}
-                                            </div>
-
-                                            <div className="flex justify-center gap-1 mb-2">
-                                                {[...Array(RARITY_CONFIG[result.character.rarity].stars)].map((_, i) => (
-                                                    <span key={i} className={`text-sm ${getStarsClass(result.character.rarity)}`}>⭐</span>
-                                                ))}
-                                            </div>
-
-                                            <div className={`text-xs font-bold ${getRarityClass(result.character.rarity)}`}>
-                                                {result.character.rarity}
-                                            </div>
+                                            {result.isDuplicate && result.coinsReceived === 0 && (
+                                                <div className="summary-constellation-badge">C{result.newConstellation}</div>
+                                            )}
+                                        </div>
+                                        <div className="char-name text-xs">{result.character.name}</div>
+                                        <div className={`${getStarsClass(result.character.rarity)} text-xs`}>
+                                            {'★'.repeat(RARITY_CONFIG[result.character.rarity].stars)}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div
-                            className="flex justify-center gap-4 pt-4 border-t"
-                            style={{ borderColor: 'rgba(41,20,0,0.15)' }}
-                        >
-                            <button onClick={closeSummary} className="summary-action-btn">Fermer</button>
-                            <Link href="/collection" className="summary-collection-btn">Voir la Collection</Link>
+                        <div className="flex gap-4 justify-center mt-4 flex-wrap">
+                            <button
+                                onClick={() => { closeSummary(); handlePull(pullResults.length === 1 ? 1 : 10); }}
+                                disabled={coins < (pullResults.length === 1 ? PULL_COST : PULL_COST * 10)}
+                                className="summary-action-btn"
+                            >
+                                🔄 Retirer
+                            </button>
+                            <button onClick={closeSummary} className="summary-collection-btn">
+                                📚 Voir la collection
+                            </button>
                         </div>
                     </div>
                 </div>

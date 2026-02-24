@@ -1,11 +1,12 @@
 import Image from 'next/image';
 
 interface CharacterImageProps {
-    src: string;
-    alt: string;
-    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge';
-    className?: string;
-    crop?: 'full' | 'head';  // ← Nouveau : full = image complète, head = juste le haut
+    src: string,
+    alt: string,
+    size?: 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge',
+    className?: string,
+    crop?: 'full' | 'head',
+    style?: { filter: string }
 }
 
 const sizeMap = {
@@ -16,7 +17,7 @@ const sizeMap = {
     xxlarge: 'text-9xl w-[512px] h-[512px]',  // ← Encore plus grand (512px)
 };
 
-export function CharacterImage({ src, alt, size = 'medium', className = '', crop = 'full' }: CharacterImageProps) {
+export function CharacterImage({src, alt, size = 'medium', className = '', crop = 'full', style}: CharacterImageProps) {
     // Détecte si c'est un emoji (commence pas par / ou http)
     const isEmoji = !src.startsWith('/') && !src.startsWith('http');
 
@@ -32,19 +33,25 @@ export function CharacterImage({ src, alt, size = 'medium', className = '', crop
     // Afficher l'image
     const [width, height] = (() => {
         switch (size) {
-            case 'small': return [48, 48];
-            case 'medium': return [64, 64];
-            case 'large': return [96, 96];
-            case 'xlarge': return [128, 128];
-            case 'xxlarge': return [512, 512];
-            default: return [64, 64];
+            case 'small':
+                return [48, 48];
+            case 'medium':
+                return [64, 64];
+            case 'large':
+                return [96, 96];
+            case 'xlarge':
+                return [128, 128];
+            case 'xxlarge':
+                return [512, 512];
+            default:
+                return [64, 64];
         }
     })();
 
     // Pour le crop "head", on affiche une image plus grande mais on ne montre que le haut
     if (crop === 'head') {
         return (
-            <div className={`${className} relative overflow-hidden rounded-lg`} style={{ width, height }}>
+            <div className={`${className} relative overflow-hidden rounded-lg`} style={{width, height}}>
                 <Image
                     src={src}
                     alt={alt}
@@ -67,7 +74,7 @@ export function CharacterImage({ src, alt, size = 'medium', className = '', crop
 
     // Image complète (mode normal)
     return (
-        <div className={`${className} relative overflow-hidden rounded-lg`} style={{ width, height }}>
+        <div className={`${className} relative overflow-hidden rounded-lg`} style={{width, height}}>
             <Image
                 src={src}
                 alt={alt}
