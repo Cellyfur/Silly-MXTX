@@ -185,22 +185,22 @@ export default function Combat() {
     nextPlayerTurn();
   };
 
-  const nextPlayerTurn = () => {
-    const nextTurn = currentTurn + 1;
-    
-    if (nextTurn >= playerTeam.length) {
-      startEnemyTurn();
-    } else {
-      const nextFighter = playerTeam[nextTurn];
-      if (nextFighter.currentHp <= 0) {
-        setCurrentTurn(nextTurn);
-        setTimeout(() => nextPlayerTurn(), 100);
-      } else {
-        updateTurnEffects(nextFighter);
-        setCurrentTurn(nextTurn);
-      }
-    }
-  };
+    const nextPlayerTurn = (fromTurn?: number) => {
+        const from = fromTurn ?? currentTurn;
+        const nextTurn = from + 1;
+
+        if (nextTurn >= playerTeam.length) {
+            startEnemyTurn();
+        } else {
+            const nextFighter = playerTeam[nextTurn];
+            if (nextFighter.currentHp <= 0) {
+                nextPlayerTurn(nextTurn);
+            } else {
+                updateTurnEffects(nextFighter);
+                setCurrentTurn(nextTurn);
+            }
+        }
+    };
 
   const startEnemyTurn = () => {
     setGameState('enemy-turn');
@@ -209,14 +209,19 @@ export default function Combat() {
     if (aliveEnemies.length === 0) return;
 
     let enemyIndex = 0;
-    
-    const processNextEnemy = () => {
-      if (enemyIndex >= aliveEnemies.length) {
-        setCurrentTurn(0);
-        playerTeam.forEach(f => updateTurnEffects(f));
-        setGameState('player-turn');
-        return;
-      }
+
+      const processNextEnemy = () => {
+          if (enemyIndex >= aliveEnemies.length) {
+              playerTeam.forEach(f => updateTurnEffects(f));
+              const firstAliveIndex = playerTeam.findIndex(f => f.currentHp > 0);
+              if (firstAliveIndex === -1) {
+                  handleDefeat();
+                  return;
+              }
+              setCurrentTurn(firstAliveIndex);
+              setGameState('player-turn');
+              return;
+          }
 
       const enemy = aliveEnemies[enemyIndex];
       setAttackingEnemy(enemy);
@@ -302,11 +307,17 @@ export default function Combat() {
           startQTE(nextEnemy);
         }, 500);
       } else {
-        setTimeout(() => {
-          setCurrentTurn(0);
-          playerTeam.forEach(f => updateTurnEffects(f));
-          setGameState('player-turn');
-        }, 1000);
+          setTimeout(() => {
+              playerTeam.forEach(f => updateTurnEffects(f));
+              // Trouver le premier fighter vivant
+              const firstAliveIndex = playerTeam.findIndex(f => f.currentHp > 0);
+              if (firstAliveIndex === -1) {
+                  handleDefeat();
+                  return;
+              }
+              setCurrentTurn(firstAliveIndex);
+              setGameState('player-turn');
+          }, 1000);
       }
     }, 1500);
   };
