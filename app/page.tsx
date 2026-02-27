@@ -341,66 +341,107 @@ export default function Home() {
                 </div>
             </main>
 
-            {/* Révélation des personnages */}
             {showResults && currentResult && (
                 <div
-                    className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
-                    style={USE_BACKGROUND_IMAGES ? getRevealBackgroundStyle(currentResult.character.rarity) : {
-                        background: `radial-gradient(ellipse at center, ${RARITY_CONFIG[currentResult.character.rarity].glowColor} 0%, rgba(10, 8, 6, 0.97) 70%)`,
-                    }}
+                    className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
+                    style={getRevealBackgroundStyle(currentResult.character.rarity, USE_BACKGROUND_IMAGES)}
                     onClick={handleRevealClick}
                 >
-                    <div className={`text-center ${isRevealing ? 'reveal-animation' : ''}`}>
-                        <div className="mb-6">
-                            <CharacterImage
-                                src={currentResult.character.image}
-                                alt={currentResult.character.name}
-                                size="xxlarge"
-                                className="mx-auto"
-                                style={{ filter: 'drop-shadow(0 0 40px rgba(255,255,255,0.3))' }}
-                            />
+                    {USE_BACKGROUND_IMAGES && (
+                        <div className="absolute inset-0 bg-black/80"></div>
+                    )}
+
+                    <div className={`relative z-10 w-full max-w-6xl mx-auto px-8 ${isRevealing ? 'reveal-animation' : ''}`}>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+                            {/* Partie gauche - Infos */}
+                            <div className="text-left space-y-6">
+                                <h2 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
+                                    {currentResult.character.name}
+                                </h2>
+
+                                <div className="flex gap-3 mb-6">
+                                    {[...Array(RARITY_CONFIG[currentResult.character.rarity].stars)].map((_, i) => (
+                                        <span
+                                            key={i}
+                                            className={`text-5xl ${getStarsClass(currentResult.character.rarity)}`}
+                                            style={{
+                                                animation: `starPop 0.5s ease-out ${i * 0.1}s both`,
+                                                filter: `drop-shadow(0 0 10px ${RARITY_CONFIG[currentResult.character.rarity].glowColor})`
+                                            }}
+                                        >⭐</span>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-4">
+                                    {currentResult.isNew ? (
+                                        <div className="inline-block px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white text-2xl font-bold rounded-lg border-2 border-green-400 shadow-lg shadow-green-500/50">
+                                            <span className="text-3xl mr-2">✨</span>
+                                            NEW
+                                        </div>
+                                    ) : currentResult.coinsReceived > 0 ? (
+                                        <div className="inline-block px-8 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white text-2xl font-bold rounded-lg border-2 border-amber-400 shadow-lg shadow-amber-500/50">
+                                            <span className="text-3xl mr-2">💰</span>
+                                            +{currentResult.coinsReceived}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="inline-block px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-2xl font-bold rounded-lg border-2 border-blue-400 shadow-lg shadow-blue-500/50">
+                                                <span className="text-3xl mr-2">🌟</span>
+                                                Constellation +1
+                                            </div>
+
+                                            <div className="bg-black/60 rounded-lg p-4 inline-block">
+                                                <div className="text-white/70 text-sm mb-2">Constellation</div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-4xl font-bold text-white/50">C{currentResult.previousConstellation}</span>
+                                                    <span className="text-3xl text-white/50">→</span>
+                                                    <span className="text-5xl font-bold text-amber-400">C{currentResult.newConstellation}</span>
+                                                </div>
+                                                {currentResult.newConstellation === MAX_CONSTELLATION && (
+                                                    <div className="text-amber-400 text-sm mt-2 font-bold">✨ MAX !</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className={`inline-block px-8 py-4 rounded-lg text-3xl font-bold ${getRarityClass(currentResult.character.rarity)} border-2`}
+                                     style={{
+                                         borderColor: RARITY_CONFIG[currentResult.character.rarity].color,
+                                         boxShadow: `0 0 30px ${RARITY_CONFIG[currentResult.character.rarity].glowColor}`
+                                     }}>
+                                    {currentResult.character.rarity}
+                                </div>
+
+                                <div className="text-white/50 text-lg mt-8">
+                                    {currentResultIndex + 1} / {pullResults.length}
+                                </div>
+                            </div>
+
+                            {/* Partie droite - Image */}
+                            <div className="flex justify-center lg:justify-end">
+                                <div
+                                    className="relative"
+                                    style={{
+                                        filter: `drop-shadow(0 0 60px ${RARITY_CONFIG[currentResult.character.rarity].glowColor})`
+                                    }}
+                                >
+                                    <div className="animate-float">
+                                        <CharacterImage
+                                            src={currentResult.character.image}
+                                            alt={currentResult.character.name}
+                                            size="xxlarge"
+                                            className="scale-[2.5]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className={`text-6xl mb-4 ${getStarsClass(currentResult.character.rarity)}`}>
-                            {'★'.repeat(RARITY_CONFIG[currentResult.character.rarity].stars)}
+                        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/50 text-sm animate-pulse">
+                            {currentResultIndex < pullResults.length - 1 ? 'Cliquez pour continuer' : 'Cliquez pour le récapitulatif'}
                         </div>
-
-                        <h2 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: "'Shippori Mincho', serif", letterSpacing: '0.08em' }}>
-                            {currentResult.character.name}
-                        </h2>
-
-                        <div className={`text-xl font-bold mb-4 ${getRarityClass(currentResult.character.rarity)}`}>
-                            {currentResult.character.rarity}
-                        </div>
-
-                        {currentResult.isNew && (
-                            <div className="inline-block px-4 py-2 rounded-full text-white font-bold text-sm"
-                                 style={{ background: 'rgba(196, 30, 30, 0.8)', border: '1px solid rgba(255,255,255,0.3)' }}>
-                                ✨ Nouveau personnage !
-                            </div>
-                        )}
-
-                        {currentResult.isDuplicate && currentResult.newConstellation <= MAX_CONSTELLATION && (
-                            <div className="inline-block px-4 py-2 rounded-full text-white font-bold text-sm"
-                                 style={{ background: 'rgba(74, 63, 53, 0.8)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                                Constellation C{currentResult.newConstellation}
-                            </div>
-                        )}
-
-                        {currentResult.coinsReceived > 0 && (
-                            <div className="mt-2 inline-block px-4 py-2 rounded-full font-bold text-sm"
-                                 style={{ background: 'rgba(184, 134, 11, 0.8)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}>
-                                +{currentResult.coinsReceived} 💰
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="absolute bottom-8 text-white/50 text-sm animate-bounce">
-                        {currentResultIndex < pullResults.length - 1 ? 'Cliquez pour continuer' : 'Cliquez pour le récapitulatif'}
-                    </div>
-
-                    <div className="absolute top-6 right-6 text-white/40 text-sm">
-                        {currentResultIndex + 1} / {pullResults.length}
                     </div>
                 </div>
             )}
@@ -465,12 +506,8 @@ export default function Home() {
                         </div>
 
                         <div className="flex gap-4 justify-center mt-4 flex-wrap">
-                            <button
-                                onClick={() => { closeSummary(); handlePull(pullResults.length === 1 ? 1 : 10); }}
-                                disabled={coins < (pullResults.length === 1 ? PULL_COST : PULL_COST * 10)}
-                                className="summary-action-btn"
-                            >
-                                🔄 Retirer
+                            <button onClick={closeSummary} className="summary-action-btn">
+                                ✕ Fermer
                             </button>
                             <button onClick={closeSummary} className="summary-collection-btn">
                                 📚 Voir la collection

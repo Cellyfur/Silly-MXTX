@@ -14,7 +14,7 @@ const sizeMap = {
     medium: 'text-4xl w-16 h-16',
     large: 'text-6xl w-24 h-24',
     xlarge: 'text-8xl w-32 h-32',
-    xxlarge: 'text-9xl w-[512px] h-[512px]',  // ← Encore plus grand (512px)
+    xxlarge: 'text-9xl w-[1024px] h-[1024px]',  // ← Encore plus grand (512px)
 };
 
 export function CharacterImage({src, alt, size = 'medium', className = '', crop = 'full', style}: CharacterImageProps) {
