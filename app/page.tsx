@@ -216,14 +216,15 @@ export default function Home() {
 
     return (
         <div className="min-h-screen">
-            {/* Tutoriel premier login */}
             {showTutorial && (
                 <TutorialModal onComplete={handleTutorialComplete} />
             )}
 
             <header className="header">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <h1 className="header-title">墨香铜臭</h1>
+                    <Link href="/" className="nav-link">
+                        <h1 className="header-title">墨香铜臭</h1>
+                    </Link>
                     <div className="flex items-center gap-4">
                         <Link href="/profile" className="nav-link">
                             {user.email}
@@ -238,9 +239,9 @@ export default function Home() {
                             <span className="text-2xl">💰</span>
                             <span className="coins-value">{coins}</span>
                         </div>
-                        <button onClick={addCoins} className="add-coins-btn">
+                        {/*}  <button onClick={addCoins} className="add-coins-btn">
                             +1000 💰
-                        </button>
+                        </button> */}
                         <button
                             onClick={handleLogout}
                             className="text-sm transition-opacity hover:opacity-60"
@@ -286,7 +287,6 @@ export default function Home() {
                                         <span className="pull-btn-cost">{PULL_COST * 10}</span>
                                     </div>
                                 </div>
-                                <div className="pull-btn-badge">POPULAIRE</div>
                             </button>
                         </div>
 
@@ -509,9 +509,9 @@ export default function Home() {
                             <button onClick={closeSummary} className="summary-action-btn">
                                 ✕ Fermer
                             </button>
-                            <button onClick={closeSummary} className="summary-collection-btn">
+                            <Link href="/collection" className="summary-collection-btn">
                                 📚 Voir la collection
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

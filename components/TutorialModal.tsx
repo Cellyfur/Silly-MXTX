@@ -11,7 +11,7 @@ const STEPS = [
         icon: '🖋️',
         title: 'Bienvenue ! ',
         subtitle: 'Bienvenue dans Silly MXTX',
-        content: `Vous voilà dans l'univers des romans de MXTX — Mo Xiang Tong Xiu. Collectionnez vos personnages préférés de Tian Guan Ci Fu, Mo Dao Zu Shi, et plus encore. Chaque invocation vous rapproche du personnage que vous désirez.`,
+        content: `Un jeu de collection de personnages inspiré de l'univers MXTX. Invoquez des personnages, combattez et complétez votre collection !`,
         hint: null,
     },
     {
@@ -46,7 +46,7 @@ const STEPS = [
         icon: '🌸',
         title: 'À vous de jouer !',
         subtitle: 'L\'aventure commence',
-        content: `Tout est prêt. Que vous soyez fan de Wei Wuxian, Xie Lian, ou que vous découvriez cet univers pour la première fois — puissiez-vous obtenir le personnage de vos rêves dès votre premier tirage.`,
+        content: `Tout est prêt. Faites vos premiers tirages, et amusez-vous bien !`,
         hint: null,
     },
 ];

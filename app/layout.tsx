@@ -4,6 +4,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
     title: "MXTX Wisher",
+    icons: {
+        icon: '/favicon.png',
+    },
     description: "Celly's draft",
 };
 
@@ -21,6 +24,35 @@ export default function RootLayout({
 
         {/* Pétales tombants */}
         <Petals />
+        {/* Message rotation mobile */}
+        <div
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center md:hidden landscape:hidden"
+            style={{ background: 'var(--ivory)', fontFamily: "'Shippori Mincho', serif" }}
+        >
+            {/* Titre */}
+            <h2 style={{ color: 'var(--ink)', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>
+                墨香铜臭
+            </h2>
+
+            {/* Trait carmin */}
+            <div style={{ width: '3rem', height: '2px', background: 'var(--carmine)', marginBottom: '2.5rem', borderRadius: '1px' }} />
+
+            {/* Icône rotation */}
+            <div
+                className="animate-bounce text-5xl mb-6"
+                style={{ color: 'var(--carmine)' }}
+            >
+                ↻
+            </div>
+
+            {/* Message */}
+            <p style={{ color: 'var(--ink)', fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'center', padding: '0 2rem', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>
+                Tournez votre téléphone
+            </p>
+            <p style={{ color: 'rgba(41,20,0,0.5)', fontSize: '0.85rem', textAlign: 'center', padding: '0 2.5rem', lineHeight: 1.6 }}>
+                Pour une meilleure expérience,<br/>nous vous recommandons le mode paysage.
+            </p>
+        </div>
 
         <AuthProvider>
             {children}

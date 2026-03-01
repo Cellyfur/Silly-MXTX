@@ -368,6 +368,12 @@
     }
 
     /* ─── INVENTAIRE ─── */
+
+    .inventory-card .char-name,
+    .inventory-card div {
+        color: var(--ink);
+    }
+
     .inventory-card {
         @apply rounded-lg p-3 text-center hover:scale-105 transition-transform;
         background: rgba(255, 253, 248, 0.7);

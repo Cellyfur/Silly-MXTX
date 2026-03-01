@@ -47,7 +47,9 @@ export default function Collection() {
         <div className="min-h-screen">
             <header className="header">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <h1 className="header-title">✨ Collection</h1>
+                    <Link href="/" className="nav-link">
+                        <h1 className="header-title">墨香铜臭</h1>
+                    </Link>
                     <Link href="/" className="add-coins-btn">
                         ← Retour aux Tirages
                     </Link>
@@ -69,7 +71,7 @@ export default function Collection() {
                                 return (
                                     <div
                                         key={char.id}
-                                        className={`inventory-card ${RARITY_CONFIG[char.rarity].bgColor} relative group ${!isOwned ? 'opacity-40 grayscale' : ''}`}
+                                        className={`inventory-card relative group ${!isOwned ? 'opacity-40 grayscale' : ''}`}
                                         style={{
                                             boxShadow: isOwned ? `0 0 15px ${RARITY_CONFIG[char.rarity].glowColor}` : 'none'
                                         }}
@@ -102,7 +104,8 @@ export default function Collection() {
                                                 crop="head"
                                             />
                                         </div>
-                                        <div className={`text-white text-xs font-medium truncate mb-1 ${!isOwned ? 'opacity-50' : ''}`}>
+                                        <div className={`text-xs font-medium truncate mb-1 ${!isOwned ? 'opacity-50' : ''}`}
+                                             style={{ color: 'var(--ink)' }}>
                                             {isOwned ? char.name : '???'}
                                         </div>
 

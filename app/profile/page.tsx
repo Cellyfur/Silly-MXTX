@@ -137,7 +137,9 @@ export default function ProfilePage() {
             {/* Header */}
             <header className="header">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <h1 className="header-title">墨香铜臭</h1>
+                    <Link href="/" className="nav-link">
+                        <h1 className="header-title">墨香铜臭</h1>
+                    </Link>
                     <div className="flex items-center gap-4">
                         <Link href="/" className="nav-link">🎴 Tirages</Link>
                         <Link href="/collection" className="nav-link">📚 Collection</Link>

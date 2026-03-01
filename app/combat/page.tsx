@@ -133,18 +133,19 @@ export default function Combat() {
         if (!currentFighter || currentFighter.currentHp <= 0) { nextPlayerTurn(); return; }
 
         let target: Enemy | Fighter | null = null;
-        if (action !== 'defend') {
-            if (action === 'special' && currentFighter.rarity === 'Common') {
-                target = null;
-            } else {
-                target = enemies.find(e => e.id === targetId) || null;
-                if (!target || target.hp <= 0) { alert('Cible invalide !'); return; }
-            }
+        if (action !== 'defend' && action !== 'special') {
+            // Attaque normale et puissante : besoin d'une cible ennemie
+            target = enemies.find(e => e.id === targetId) || null;
+            if (!target || target.hp <= 0) { alert('Cible invalide !'); return; }
+        } else if (action === 'special' && currentFighter.rarity === 'Rare') {
+            // Zone : cible le premier ennemi vivant automatiquement
+            target = enemies.find(e => e.hp > 0) || null;
         }
+        // defend et special Legendary/Common : target reste null, c'est géré dans lib/combat.ts
 
         const result = executeAction(
-            { type: action, attacker: currentFighter, target: target || enemies[0] },
-            target || enemies[0],
+            { type: action, attacker: currentFighter, target: target || enemies.find(e => e.hp > 0) || enemies[0] },
+            target || enemies.find(e => e.hp > 0) || enemies[0],
             playerTeam
         );
 
@@ -167,10 +168,22 @@ export default function Combat() {
         const nextTurn = currentTurn + 1;
         if (nextTurn >= playerTeam.length) {
             startEnemyTurn();
+            return;
+        }
+
+        const nextFighter = playerTeam[nextTurn];
+        if (nextFighter.currentHp <= 0) {
+            // Vérifier si tous les suivants sont morts aussi
+            const anyAliveAfter = playerTeam.slice(nextTurn).some(f => f.currentHp > 0);
+            if (!anyAliveAfter) {
+                startEnemyTurn(); // Plus personne de vivant → tour ennemi
+                return;
+            }
+            setCurrentTurn(nextTurn);
+            setTimeout(() => nextPlayerTurn(), 100);
         } else {
-            const nextFighter = playerTeam[nextTurn];
-            if (nextFighter.currentHp <= 0) { setCurrentTurn(nextTurn); setTimeout(() => nextPlayerTurn(), 100); }
-            else { updateTurnEffects(nextFighter); setCurrentTurn(nextTurn); }
+            updateTurnEffects(nextFighter);
+            setCurrentTurn(nextTurn);
         }
     };
 
@@ -337,9 +350,11 @@ export default function Combat() {
         <div className="min-h-screen">
             <header className="header">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <h1 className="header-title">⚔️ Combat Arena</h1>
+                    <Link href="/" className="nav-link">
+                        <h1 className="header-title">墨香铜臭</h1>
+                    </Link>
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="text-white hover:text-amber-400 transition-colors font-medium">← Retour</Link>
+                        <Link href="/" className="hover:text-amber-400 transition-colors font-medium">← Retour</Link>
                         <div className="coins-display">
                             <span className="text-2xl">💰</span>
                             <span className="coins-value">{coins}</span>
@@ -354,7 +369,8 @@ export default function Combat() {
                     {/* Team Selection */}
                     {gameState === 'team-selection' && (
                         <div className="card">
-                            <h2 className="card-title">Sélectionne ton équipe (3 personnages)</h2>
+                            <h1 className="card-title">Combats</h1>
+                            <div className={"rates-title"} >Sélectionne ton équipe (3 personnages)</div>
                             <div className="mb-6 text-center">
                                 <div className="inline-flex gap-2 bg-black/60 px-6 py-3 rounded-lg border border-amber-600/30">
                                     <span className="text-white font-bold">{selectedTeam.length} / 3</span>
